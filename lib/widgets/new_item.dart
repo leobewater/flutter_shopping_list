@@ -11,10 +11,14 @@ class NewItem extends StatefulWidget {
 class _NewItemState extends State<NewItem> {
   // create a unique key object
   final _formKey = GlobalKey<FormState>();
+  var _enteredName = '';
 
   void _savedItem() {
     // get the formKey from form then run validation when submit button is clicked
-    _formKey.currentState!.validate();
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      debugPrint(_enteredName);
+    }
   }
 
   @override
@@ -43,6 +47,12 @@ class _NewItemState extends State<NewItem> {
                     return 'Must be between 2 and 50 characters.';
                   }
                   return null;
+                },
+                onSaved: (value) {
+                  // this will be run after passing validation
+                  // make sure value is not null
+                  // store field value to a variable
+                  _enteredName = value!;
                 },
               ), // instead of TextField()
               Row(
