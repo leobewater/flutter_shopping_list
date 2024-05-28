@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_shopping_list/data/categories.dart';
+import 'package:flutter_shopping_list/models/category.dart';
+import 'package:flutter_shopping_list/models/grocery_item.dart';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
@@ -12,12 +14,25 @@ class _NewItemState extends State<NewItem> {
   // create a unique key object
   final _formKey = GlobalKey<FormState>();
   var _enteredName = '';
+  var _enteredQuantity = 1;
+  var _selectedCategory = categories[Categories.vegetables]!;
 
   void _savedItem() {
     // get the formKey from form then run validation when submit button is clicked
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      debugPrint(_enteredName);
+      // debugPrint(_enteredName);
+      // debugPrint(_enteredQuantity.toString());
+      // debugPrint(_selectedCategory.toString());
+
+// navigate back to the previous screen, like Back button
+      Navigator.of(context).pop(
+        GroceryItem(
+            id: DateTime.now().toString(), // not perfect
+            name: _enteredName,
+            quantity: _enteredQuantity,
+            category: _selectedCategory),
+      );
     }
   }
 
@@ -64,7 +79,7 @@ class _NewItemState extends State<NewItem> {
                         label: Text('Quantity'),
                       ),
                       keyboardType: TextInputType.number,
-                      initialValue: '1',
+                      initialValue: _enteredQuantity.toString(),
                       validator: (value) {
                         if (value == null ||
                             value.isEmpty ||
@@ -74,11 +89,15 @@ class _NewItemState extends State<NewItem> {
                         }
                         return null;
                       },
+                      onSaved: (value) {
+                        _enteredQuantity = int.parse(value!);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: DropdownButtonFormField(
+                      value: _selectedCategory,
                       items: [
                         // use .entries to for loop a Map<>
                         for (final category in categories.entries)
@@ -97,7 +116,12 @@ class _NewItemState extends State<NewItem> {
                             ),
                           ),
                       ],
-                      onChanged: (value) {},
+                      onChanged: (value) {
+                        // refresh when changing selected value, no need to use the onSaved here, since it's already assign the value to the variable.
+                        setState(() {
+                          _selectedCategory = value!;
+                        });
+                      },
                     ),
                   ),
                 ],
