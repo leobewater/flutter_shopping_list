@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter_shopping_list/data/categories.dart';
 import 'package:flutter_shopping_list/models/category.dart';
 import 'package:flutter_shopping_list/models/grocery_item.dart';
@@ -25,14 +28,34 @@ class _NewItemState extends State<NewItem> {
       // debugPrint(_enteredQuantity.toString());
       // debugPrint(_selectedCategory.toString());
 
-// navigate back to the previous screen, like Back button
+      // save to Firebase Realtime db
+      final url = Uri.https(
+          'flutter-shopping-list-7fbcc-default-rtdb.firebaseio.com',
+          'shopping-list.json');
+
+      http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'name': _enteredName,
+          'quantity': _enteredQuantity,
+          'category': _selectedCategory.title,
+        }),
+      );
+
+      // navigate back to the previous screen, like Back button
+      /*
       Navigator.of(context).pop(
         GroceryItem(
-            id: DateTime.now().toString(), // not perfect
-            name: _enteredName,
-            quantity: _enteredQuantity,
-            category: _selectedCategory),
+          id: DateTime.now().toString(), // not perfect
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _selectedCategory,
+        ),
       );
+      */
     }
   }
 
