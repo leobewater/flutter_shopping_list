@@ -44,27 +44,23 @@ class _NewItemState extends State<NewItem> {
           'category': _selectedCategory.title,
         }),
       );
-      debugPrint(response.body);
-      debugPrint(response.statusCode.toString());
+
+      final Map<String, dynamic> resData = jsonDecode(response.body);
 
       if (!context.mounted) {
         return;
       }
 
       // navigate back to the previous screen, like Back button
-      Navigator.of(context).pop();
-
-      /*
       // return with the new item
       Navigator.of(context).pop(
         GroceryItem(
-          id: DateTime.now().toString(), // not perfect
+          id: resData['name'], // using new item id
           name: _enteredName,
           quantity: _enteredQuantity,
           category: _selectedCategory,
         ),
       );
-      */
     }
   }
 

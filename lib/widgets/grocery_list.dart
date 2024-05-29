@@ -38,7 +38,7 @@ class _GroceryListState extends State<GroceryList> {
     final List<GroceryItem> loadedItems = [];
 
     for (final item in listData.entries) {
-      // find and filter category by matching category title
+      // filter category by matching category title
       final category = categories.entries
           .firstWhere(
               (catItem) => catItem.value.title == item.value['category'])
@@ -60,15 +60,6 @@ class _GroceryListState extends State<GroceryList> {
   }
 
   void _addItem() async {
-    await Navigator.of(context).push<GroceryItem>(
-      MaterialPageRoute(
-        builder: (ctx) => const NewItem(),
-      ),
-    );
-
-    _loadItems();
-
-    /*
     // receive a GroceryItem item back from the next page
     final newItem = await Navigator.of(context).push<GroceryItem>(
       MaterialPageRoute(
@@ -77,7 +68,6 @@ class _GroceryListState extends State<GroceryList> {
     );
 
     // next page didn't return a new item
-
     if (newItem == null) {
       return;
     }
@@ -85,7 +75,6 @@ class _GroceryListState extends State<GroceryList> {
     setState(() {
       _groceryItems.add(newItem);
     });
-    */
   }
 
   void _removeItem(GroceryItem item) {
