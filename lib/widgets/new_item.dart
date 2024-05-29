@@ -34,6 +34,8 @@ class _NewItemState extends State<NewItem> {
       // debugPrint(_enteredQuantity.toString());
       // debugPrint(_selectedCategory.toString());
 
+      // use try{}catch(e){}
+
       // save to Firebase Realtime db
       final url = Uri.https(
           'flutter-shopping-list-7fbcc-default-rtdb.firebaseio.com',
