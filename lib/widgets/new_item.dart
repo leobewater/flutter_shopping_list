@@ -20,7 +20,7 @@ class _NewItemState extends State<NewItem> {
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
-  void _savedItem() {
+  void _savedItem() async {
     // get the formKey from form then run validation when submit button is clicked
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -33,7 +33,7 @@ class _NewItemState extends State<NewItem> {
           'flutter-shopping-list-7fbcc-default-rtdb.firebaseio.com',
           'shopping-list.json');
 
-      http.post(
+      final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -44,9 +44,18 @@ class _NewItemState extends State<NewItem> {
           'category': _selectedCategory.title,
         }),
       );
+      debugPrint(response.body);
+      debugPrint(response.statusCode.toString());
+
+      if (!context.mounted) {
+        return;
+      }
 
       // navigate back to the previous screen, like Back button
+      Navigator.of(context).pop();
+
       /*
+      // return with the new item
       Navigator.of(context).pop(
         GroceryItem(
           id: DateTime.now().toString(), // not perfect
