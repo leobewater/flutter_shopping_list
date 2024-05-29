@@ -19,11 +19,17 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
+  bool _isSending = false;
 
   void _savedItem() async {
     // get the formKey from form then run validation when submit button is clicked
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      setState(() {
+        _isSending = true;
+      });
+
       // debugPrint(_enteredName);
       // debugPrint(_enteredQuantity.toString());
       // debugPrint(_selectedCategory.toString());
@@ -159,15 +165,23 @@ class _NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      // reset form
-                      _formKey.currentState!.reset();
-                    },
+                    onPressed: _isSending
+                        ? null // disable button
+                        : () {
+                            // reset form
+                            _formKey.currentState!.reset();
+                          },
                     child: const Text('Reset'),
                   ),
                   ElevatedButton(
-                    onPressed: _savedItem,
-                    child: const Text('Add Item'),
+                    onPressed: _isSending ? null : _savedItem,
+                    child: _isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Add Item'),
                   ),
                 ],
               )
