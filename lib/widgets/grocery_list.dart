@@ -15,15 +15,59 @@ class GroceryList extends StatefulWidget {
 
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
-  bool _isLoading = false;
+  // bool _isLoading = false;
+  late Future<List<GroceryItem>> _loadedItems;
   String? _error;
 
   @override
   void initState() {
-    _loadItems();
     super.initState();
+    _loadedItems = _loadItems();
   }
 
+  Future<List<GroceryItem>> _loadItems() async {
+    // fetch from db
+    final url = Uri.https(
+        'flutter-shopping-list-7fbcc-default-rtdb.firebaseio.com',
+        'shopping-list.json');
+
+    final response = await http.get(url);
+
+    if (response.statusCode >= 400) {
+      // error will be handled in the FutureBuilder
+      throw Exception('Failed to fetch data. Please try again later.');
+    }
+
+    // Firebase returns 'null'
+    if (response.body == 'null') {
+      return [];
+    }
+
+    final Map<String, dynamic> listData = jsonDecode(response.body);
+    final List<GroceryItem> loadedItems = [];
+
+    for (final item in listData.entries) {
+      // filter category by matching category title
+      final category = categories.entries
+          .firstWhere(
+              (catItem) => catItem.value.title == item.value['category'])
+          .value;
+
+      loadedItems.add(
+        GroceryItem(
+          id: item.key,
+          name: item.value['name'],
+          quantity: item.value['quantity'],
+          category: category,
+        ),
+      );
+    }
+
+    return loadedItems;
+  }
+
+/*
+// old way not using Future builder
   void _loadItems() async {
     try {
       // fetch from db
@@ -78,7 +122,7 @@ class _GroceryListState extends State<GroceryList> {
       });
     }
   }
-
+*/
   void _addItem() async {
     // receive a GroceryItem item back from the next page
     final newItem = await Navigator.of(context).push<GroceryItem>(
@@ -122,61 +166,6 @@ class _GroceryListState extends State<GroceryList> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = const Center(
-      child: Text('No items added yet.'),
-    );
-
-    if (_isLoading) {
-      content = const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (_groceryItems.isNotEmpty) {
-      content = ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (ctx, index) => Dismissible(
-          // create a valueKey
-          key: ValueKey(_groceryItems[index].id),
-          // drag item to side to remove it
-          onDismissed: (direction) {
-            _removeItem(_groceryItems[index]);
-          },
-          child: ListTile(
-            title: Text(_groceryItems[index].name),
-            leading: Container(
-              width: 24,
-              height: 24,
-              color: _groceryItems[index].category.color,
-            ),
-            trailing: Text(_groceryItems[index].quantity.toString()),
-          ),
-        ),
-      );
-    }
-
-    if (_error != null) {
-      content = Center(
-        child: Column(
-          children: [
-            Text(_error!),
-            const SizedBox(height: 20),
-            ElevatedButton(
-                onPressed: () {
-                  // Refresh page
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const GroceryList()),
-                    (Route<dynamic> route) => false,
-                  );
-                },
-                child: const Text('Refresh Page'))
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Grocery list'),
@@ -187,7 +176,46 @@ class _GroceryListState extends State<GroceryList> {
           ),
         ],
       ),
-      body: content,
+      // FutureBuilder only loads once
+      body: FutureBuilder(
+        future: _loadedItems,
+        builder: (context, snapshot) {
+          debugPrint('FutureBuilder Loaded');
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text(snapshot.error.toString()));
+          }
+
+          if (snapshot.data!.isEmpty) {
+            return const Center(child: Text('No items added yet.'));
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (ctx, index) => Dismissible(
+              // create a valueKey
+              key: ValueKey(snapshot.data![index].id),
+              // drag item to side to remove it
+              onDismissed: (direction) {
+                _removeItem(snapshot.data![index]);
+              },
+              child: ListTile(
+                title: Text(snapshot.data![index].name),
+                leading: Container(
+                  width: 24,
+                  height: 24,
+                  color: snapshot.data![index].category.color,
+                ),
+                trailing: Text(snapshot.data![index].quantity.toString()),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
